@@ -2,7 +2,8 @@
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Axios } from "axios";
+import axios from "axios";
+import toast from "react-hot-toast";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -13,13 +14,36 @@ export default function SignupPage() {
   });
 
   const [buttonDisabled, setButtonDisabled] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
 
-  const onSignup = async () => {};
+  const onSignup = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.post("/api/users/signup", user);
+      console.log("Signup Success", response.data);
+      router.push("/login");
+    } catch (error: any) {
+      console.log("Signup failed", error.message);
+      toast.error(error.message);
+    }
+  };
 
-  useEffect(() => {}, [user]);
+  useEffect(() => {
+    if (
+      user.email.length > 0 &&
+      user.password.length > 0 &&
+      user.username.length > 0
+    ) {
+      setButtonDisabled(false);
+    } else {
+      setButtonDisabled(true);
+    }
+  }, [user]);
   return (
     <div className="flex flex-col items-center justify-center min-h-screen py-2">
-      <h1 className="text-center text-white">Signup</h1>
+      <h1 className="text-center text-white">
+        {loading ? "Processing" : "Sign Up"}
+      </h1>
       <hr />
       <label htmlFor="username">username</label>
       <input
@@ -51,7 +75,7 @@ export default function SignupPage() {
       />
       <label htmlFor="password">password</label>
       <input
-        className="p-2 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:border-gray-600"
+        className="p-2 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:border-gray-600 text-white"
         id="password"
         type="password"
         value={user.password}
@@ -64,7 +88,7 @@ export default function SignupPage() {
         placeholder="Password"
       />
       <button onClick={onSignup} className="p-2">
-        Sign Up
+        {buttonDisabled ? "No SignUp" : "Sign Up"}
       </button>
       <Link href="/login">Already Registered?</Link>
     </div>
